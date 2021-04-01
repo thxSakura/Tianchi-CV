@@ -1,8 +1,8 @@
 import numpy as np
 import torch
-
 from PIL import Image
 from torch.utils.data.dataset import Dataset
+
 
 class TRAINDataset(Dataset):
     def __init__(self, img_path, img_label, transform=None):

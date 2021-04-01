@@ -1,17 +1,19 @@
 import collections
-import random
 import glob
 import json
 import os
+import random
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import torch
 import torchvision.transforms as transforms
 from tqdm import tqdm
 
-from data_holder import TRAINDataset, TESTDataset
-from const import DATA_FOLDER, DATA_PATH, DATA_NAME, LABEL_NAME, OUTPUT_FOLDER, SUBMIT_NAME
+from const import (DATA_FOLDER, DATA_NAME, DATA_PATH, LABEL_NAME,
+                   OUTPUT_FOLDER, SUBMIT_NAME)
+from data_holder import TESTDataset, TRAINDataset
+
 
 def setup_seed(seed):
     torch.manual_seed(seed)

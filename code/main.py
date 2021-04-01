@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from model import Module
-from utils import make_submit, get_data_loader, setup_seed
 from const import MODEL_NAME, TMP_FOLDER
+from model import Module
+from utils import get_data_loader, make_submit, setup_seed
 
 GPU = 'cuda:0'
 
