@@ -14,6 +14,7 @@ from const import (DATA_FOLDER, DATA_NAME, DATA_PATH, LABEL_NAME,
                    OUTPUT_FOLDER, SUBMIT_NAME)
 from data_holder import TESTDataset, TRAINDataset
 
+THREAD = 8
 
 def setup_seed(seed):
     torch.manual_seed(seed)
@@ -36,7 +37,7 @@ def get_data_loader(data, batch_size):
                     ])), 
             batch_size=batch_size, # 每批样本个数
             shuffle=False, # 是否打乱顺序
-            num_workers=10, # 读取的线程个数
+            num_workers=THREAD, # 读取的线程个数
         )
     else:
         data_json = json.load(open(DATA_FOLDER + LABEL_NAME.format(data)))
@@ -53,7 +54,7 @@ def get_data_loader(data, batch_size):
                     ])), 
             batch_size=batch_size, # 每批样本个数
             shuffle=False, # 是否打乱顺序
-            num_workers=10, # 读取的线程个数
+            num_workers=THREAD, # 读取的线程个数
         )
 
     return data_loader
@@ -78,3 +79,12 @@ def make_submit(result, data):
     
     sub.to_csv(OUTPUT_FOLDER + SUBMIT_NAME, index=False)
     print('生成提交文件。')
+    
+def bar(iterator, epoch):
+    
+    return tqdm(iterator, 
+#                 desc='EPOCH:{}'.format(epoch), #进度栏的前缀。
+                ncols=75, #整个输出消息的宽度。
+                maxinterval=1, #最大进度显示更新间隔[默认：10]秒。
+                colour='green',
+            )

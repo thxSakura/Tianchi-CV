@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from const import MODEL_NAME, TMP_FOLDER
 from model import Module
-from utils import get_data_loader, make_submit, setup_seed
+from utils import bar, get_data_loader, make_submit, setup_seed
 
 GPU = 'cuda:0'
 
@@ -18,19 +18,21 @@ PATIENCE = 5
 
 BATCH_SIZE = 20
 
+EPOCH = 20
+
 def run_train():
     train_loader = get_data_loader('train', BATCH_SIZE)
     model = Module().to(GPU)
     criterion = nn.CrossEntropyLoss(size_average=False)
-    optim = torch.optim.Adam(model.parameters(), 0.005)
+    optim = torch.optim.Adam(model.parameters(), 0.001)
     
     min_loss = MIN_LOSS
     
     model.train()
-    
-    for epoch in range(20):
-        print('EPOCH:{}'.format(epoch))
-        for data in tqdm(train_loader):
+    print('-'*75)
+    for epoch in range(EPOCH):
+        print('Epoch {}/{}'.format(epoch, EPOCH))
+        for data in bar(train_loader, epoch):
             c1, c2, c3, c4, c5, c6 = model(data[0].to(GPU))
             loss = criterion(c1, data[1][:, 0].to(GPU)) + \
                 criterion(c2, data[1][:, 1].to(GPU)) + \
@@ -43,6 +45,8 @@ def run_train():
             optim.zero_grad()
             loss.backward()
             optim.step()
+        print('CrossEntropyLoss:{}'.format(loss))
+        print('-'*75)
         if loss < min_loss:
             earlystopping = 0
             min_loss = loss
@@ -51,7 +55,6 @@ def run_train():
             earlystopping+=1
             if earlystopping == PATIENCE:
                 break
-        print('CrossEntropyLoss:{}'.format(loss))
         
 def run_validation():
     val_loader = get_data_loader('val', BATCH_SIZE)
