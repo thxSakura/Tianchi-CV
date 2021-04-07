@@ -23,7 +23,7 @@ def setup_seed(seed):
     random.seed(seed)
     torch.backends.cudnn.deterministic = True    
 
-def get_data_loader(data, batch_size):
+def get_data_loader(data, batch_size, sample=None):
     data_path = glob.glob(DATA_FOLDER + DATA_PATH.format(data) + DATA_NAME)
 
     data_path.sort()
@@ -31,9 +31,11 @@ def get_data_loader(data, batch_size):
         data_loader = torch.utils.data.DataLoader(
                 TESTDataset(data_path,
                            transforms.Compose([
-                               transforms.Resize((64, 128)),
+                               transforms.Resize((224, 224)),
+                               transforms.ColorJitter(0.3, 0.3, 0.2),
+                               transforms.RandomRotation(5),
                                transforms.ToTensor(),
-                               transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                               transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
                     ])), 
             batch_size=batch_size, # 每批样本个数
             shuffle=False, # 是否打乱顺序
@@ -46,11 +48,11 @@ def get_data_loader(data, batch_size):
         data_loader = torch.utils.data.DataLoader(
                 TRAINDataset(data_path, data_label,
                            transforms.Compose([
-                               transforms.Resize((64, 128)),
+                               transforms.Resize((224, 224)),
                                transforms.ColorJitter(0.3, 0.3, 0.2),
                                transforms.RandomRotation(5),
                                transforms.ToTensor(),
-                               transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                               transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                     ])), 
             batch_size=batch_size, # 每批样本个数
             shuffle=False, # 是否打乱顺序
@@ -59,23 +61,42 @@ def get_data_loader(data, batch_size):
 
     return data_loader
 
-def make_submit(result, data):
-    submit = []
-    for num in tqdm(result):
+def cal_num(c1, c2, c3, c4, c5, label=False, result=None):
+    if result == None:
+        result = []
+    for i in range(len(c1)):
+        num = []
+        for c in [c1, c2, c3, c4, c5]:
+            if label:
+                num.append(int(c[i]))
+            else:
+                _, indice = c[i].max(0)
+                num.append(int(indice))
+        
         number = 0
         invalid = collections.Counter(num)[10]
         i = 1
         for n in num:
             if n == 10:
                 break
-            number += n * (10 ** (6 - invalid - i))
+            number += n * (10 ** (5 - invalid - i))
             i += 1
-        submit.append(number)
+        result.append(number)
+    return result
+
+def cal_auc(predict_nums, label_nums):
+    score = 0
+    for i in range(len(predict_nums)):
+        if predict_nums[i] == label_nums[i]:
+            score += 1
+    return score / len(predict_nums)
+
+def make_submit(result, data):
     sub = pd.DataFrame(columns=('file_name','file_code'))
     names = os.listdir(DATA_FOLDER + DATA_PATH.format(data))
     names.sort()
     sub['file_name'] = names
-    sub['file_code'] = submit
+    sub['file_code'] = result
     
     sub.to_csv(OUTPUT_FOLDER + SUBMIT_NAME, index=False)
     print('生成提交文件。')
