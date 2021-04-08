@@ -101,7 +101,7 @@ def make_submit(result, data):
     sub.to_csv(OUTPUT_FOLDER + SUBMIT_NAME, index=False)
     print('生成提交文件。')
     
-def bar(iterator, epoch):
+def bar(iterator):
     
     return tqdm(iterator, 
 #                 desc='EPOCH:{}'.format(epoch), #进度栏的前缀。
