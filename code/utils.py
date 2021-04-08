@@ -61,12 +61,12 @@ def get_data_loader(data, batch_size, sample=None):
 
     return data_loader
 
-def cal_num(c1, c2, c3, c4, c5, label=False, result=None):
+def cal_num(c1, c2, c3, c4, c5, c6, label=False, result=None):
     if result == None:
         result = []
     for i in range(len(c1)):
         num = []
-        for c in [c1, c2, c3, c4, c5]:
+        for c in [c1, c2, c3, c4, c5, c6]:
             if label:
                 num.append(int(c[i]))
             else:
@@ -79,7 +79,7 @@ def cal_num(c1, c2, c3, c4, c5, label=False, result=None):
         for n in num:
             if n == 10:
                 break
-            number += n * (10 ** (5 - invalid - i))
+            number += n * (10 ** (6 - invalid - i))
             i += 1
         result.append(number)
     return result

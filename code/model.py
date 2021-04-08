@@ -24,6 +24,7 @@ class Module(nn.Module):
         self.liner23 = nn.Linear(OUT_FEATURES, 11)
         self.liner24 = nn.Linear(OUT_FEATURES, 11)
         self.liner25 = nn.Linear(OUT_FEATURES, 11)
+        self.liner26 = nn.Linear(OUT_FEATURES, 11)
 
     def forward(self, data):
         x = self.resnet(data)
@@ -36,4 +37,5 @@ class Module(nn.Module):
         c3 = self.liner23(x)
         c4 = self.liner24(x)
         c5 = self.liner25(x)
-        return c1, c2, c3, c4, c5
+        c6 = self.liner26(x)
+        return c1, c2, c3, c4, c5, c6

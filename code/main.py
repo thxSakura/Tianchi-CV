@@ -18,7 +18,7 @@ BATCH_SIZE = 100
 
 EPOCH = 2000
 
-LR = 0.005
+LR = 0.001
 
 def run_train():
     train_loader = get_data_loader('train', BATCH_SIZE)
@@ -39,12 +39,13 @@ def run_train():
         #train
         print('Epoch {}/{}'.format(epoch+1, EPOCH))
         for data in bar(train_loader, epoch):
-            c1, c2, c3, c4, c5 = model(data[0].to(GPU))
+            c1, c2, c3, c4, c5, c6 = model(data[0].to(GPU))
             loss = criterion(c1, data[1][:, 0].to(GPU)) + \
                 criterion(c2, data[1][:, 1].to(GPU)) + \
                 criterion(c3, data[1][:, 2].to(GPU)) + \
                 criterion(c4, data[1][:, 3].to(GPU)) + \
-                criterion(c5, data[1][:, 4].to(GPU))
+                criterion(c5, data[1][:, 4].to(GPU)) + \
+                criterion(c6, data[1][:, 5].to(GPU))
 
 #             loss /= 5
             optim.zero_grad()
@@ -53,23 +54,24 @@ def run_train():
             loss.backward()    
             optim.step()
             
-        predict_nums = cal_num(c1, c2, c3, c4, c5)
-        label_nums = cal_num(data[1][:, 0], data[1][:, 1], data[1][:, 2], data[1][:, 3], data[1][:, 4], label=True)
+        predict_nums = cal_num(c1, c2, c3, c4, c5, c6)
+        label_nums = cal_num(data[1][:, 0], data[1][:, 1], data[1][:, 2], data[1][:, 3], data[1][:, 4], data[1][:, 5], label=True)
         train_score = cal_auc(predict_nums, label_nums)
 
         #validation
         for data in val_loader:
-            c1, c2, c3, c4, c5 = model(data[0].to(GPU))
+            c1, c2, c3, c4, c5, c6 = model(data[0].to(GPU))
             val_loss = criterion(c1, data[1][:, 0].to(GPU)) + \
                 criterion(c2, data[1][:, 1].to(GPU)) + \
                 criterion(c3, data[1][:, 2].to(GPU)) + \
                 criterion(c4, data[1][:, 3].to(GPU)) + \
-                criterion(c5, data[1][:, 4].to(GPU))
+                criterion(c5, data[1][:, 4].to(GPU)) + \
+                criterion(c6, data[1][:, 5].to(GPU))
             break
 #             val_loss /= 5
         
-        predict_nums = cal_num(c1, c2, c3, c4, c5)
-        label_nums = cal_num(data[1][:, 0], data[1][:, 1], data[1][:, 2], data[1][:, 3], data[1][:, 4], label=True)
+        predict_nums = cal_num(c1, c2, c3, c4, c5, c6)
+        label_nums = cal_num(data[1][:, 0], data[1][:, 1], data[1][:, 2], data[1][:, 3], data[1][:, 4], data[1][:, 5], label=True)
         val_score = cal_auc(predict_nums, label_nums)
         
         print('loss:{} / auc:{} / val_loss:{} / val_auc:{}'.format(loss, train_score, val_loss, val_score))  
@@ -94,8 +96,8 @@ def run_test():
     result = []
     with torch.no_grad():
         for data in tqdm(test_loader):
-            c1, c2, c3, c4, c5 = model(data.to(GPU))
-            result = cal_num(c1, c2, c3, c4, c5, False, result)
+            c1, c2, c3, c4, c5, c6 = model(data.to(GPU))
+            result = cal_num(c1, c2, c3, c4, c5, c6, False, result)
     make_submit(result, 'test_a')
     
 if __name__ == "__main__":
