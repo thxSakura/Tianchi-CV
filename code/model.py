@@ -1,12 +1,17 @@
 import torch.nn as nn
-from torchvision.models import resnet18, resnet50
+from torchvision.models import resnext50_32x4d
 
-OUT_FEATURES = 1000
+OUT_FEATURES = 2048
+
+BACKBONE = resnext50_32x4d(pretrained=True)
 
 class Module(nn.Module):
     def __init__(self):
         super(Module, self).__init__()
-        self.resnet = resnet18(pretrained=True)
+        model_conv = BACKBONE
+        model_conv.avgpool = nn.AdaptiveAvgPool2d(1)
+        model_conv = nn.Sequential(*list(model_conv.children())[:-1])
+        self.resnet = model_conv
         
 #         for p in self.parameters():		# 固定权重
 #             p.requires_grad = False
@@ -17,7 +22,7 @@ class Module(nn.Module):
 #             nn.ReLU(),
 #             nn.MaxPool2d(3, stride=2),
 #         )
-#         self.liner1 = nn.Linear(23328, OUT_FEATURES)
+#         self.liner1 = nn.Linear(OUT_FEATURES, OUT_FEATURES)
 #         self.relu = nn.ReLU()
         self.liner21 = nn.Linear(OUT_FEATURES, 11)
         self.liner22 = nn.Linear(OUT_FEATURES, 11)
@@ -29,9 +34,6 @@ class Module(nn.Module):
     def forward(self, data):
         x = self.resnet(data)
         x = x.view(x.shape[0], -1)
-
-#         x = self.liner1(x)
-#         x = self.relu(x)
         c1 = self.liner21(x)
         c2 = self.liner22(x)
         c3 = self.liner23(x)

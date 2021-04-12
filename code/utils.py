@@ -16,6 +16,10 @@ from data_holder import TESTDataset, TRAINDataset
 
 THREAD = 8
 
+IMAGE_SIZE = (256, 256)
+
+MEAN_STD = [0.5, 0.5, 0.5]
+
 def setup_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -31,11 +35,11 @@ def get_data_loader(data, batch_size, sample=None):
         data_loader = torch.utils.data.DataLoader(
                 TESTDataset(data_path,
                            transforms.Compose([
-                               transforms.Resize((224, 224)),
+                               transforms.Resize(IMAGE_SIZE),
                                transforms.ColorJitter(0.3, 0.3, 0.2),
                                transforms.RandomRotation(5),
                                transforms.ToTensor(),
-                               transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+                               transforms.Normalize(MEAN_STD, MEAN_STD)
                     ])), 
             batch_size=batch_size, # 每批样本个数
             shuffle=False, # 是否打乱顺序
@@ -48,11 +52,11 @@ def get_data_loader(data, batch_size, sample=None):
         data_loader = torch.utils.data.DataLoader(
                 TRAINDataset(data_path, data_label,
                            transforms.Compose([
-                               transforms.Resize((224, 224)),
+                               transforms.Resize(IMAGE_SIZE),
                                transforms.ColorJitter(0.3, 0.3, 0.2),
                                transforms.RandomRotation(5),
                                transforms.ToTensor(),
-                               transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                               transforms.Normalize(MEAN_STD, MEAN_STD)
                     ])), 
             batch_size=batch_size, # 每批样本个数
             shuffle=False, # 是否打乱顺序

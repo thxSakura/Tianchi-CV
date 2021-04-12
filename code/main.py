@@ -1,8 +1,6 @@
 import sys
 
 import torch
-import torch.nn as nn
-from apex import amp
 from tqdm import tqdm
 
 from const import MODEL_NAME, TMP_FOLDER
@@ -25,40 +23,41 @@ def run_train():
     val_loader = get_data_loader('val', BATCH_SIZE)
     
     model = Module().to(GPU)
-    criterion = nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss()
 #     optim = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LR)
-    optim = torch.optim.Adam(model.parameters(), lr=LR)
-    model, optim = amp.initialize(model, optim, opt_level="O1") # 这里要添加这句代码
+    optim = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=0.001)
+    #混合精度
+    scaler = torch.cuda.amp.GradScaler()
 
     min_loss = 10000
     earlystopping = 0
     
-    model.train()
     print('-'*75)
     for epoch in range(EPOCH):
         #train
+        model.train()
         print('Epoch {}/{}'.format(epoch+1, EPOCH))
         for data in bar(train_loader):
-            c1, c2, c3, c4, c5, c6 = model(data[0].to(GPU))
-            loss = criterion(c1, data[1][:, 0].to(GPU)) + \
-                criterion(c2, data[1][:, 1].to(GPU)) + \
-                criterion(c3, data[1][:, 2].to(GPU)) + \
-                criterion(c4, data[1][:, 3].to(GPU)) + \
-                criterion(c5, data[1][:, 4].to(GPU)) + \
-                criterion(c6, data[1][:, 5].to(GPU))
+            with torch.cuda.amp.autocast():
+                c1, c2, c3, c4, c5, c6 = model(data[0].to(GPU))
+                loss = criterion(c1, data[1][:, 0].to(GPU)) + \
+                    criterion(c2, data[1][:, 1].to(GPU)) + \
+                    criterion(c3, data[1][:, 2].to(GPU)) + \
+                    criterion(c4, data[1][:, 3].to(GPU)) + \
+                    criterion(c5, data[1][:, 4].to(GPU)) + \
+                    criterion(c6, data[1][:, 5].to(GPU))
 
-#             loss /= 5
             optim.zero_grad()
-            with amp.scale_loss(loss, optim) as scaled_loss:
-                scaled_loss.backward()   # loss要这么用
-#             loss.backward()    
-            optim.step()
+            scaler.scale(loss).backward()
+            scaler.step(optim)
+            scaler.update()
             
         predict_nums = cal_num(c1, c2, c3, c4, c5, c6)
         label_nums = cal_num(data[1][:, 0], data[1][:, 1], data[1][:, 2], data[1][:, 3], data[1][:, 4], data[1][:, 5], label=True)
         train_score = cal_auc(predict_nums, label_nums)
 
         #validation
+        model.eval()
         with torch.no_grad():
             for data in val_loader:
                 c1, c2, c3, c4, c5, c6 = model(data[0].to(GPU))
@@ -69,7 +68,6 @@ def run_train():
                     criterion(c5, data[1][:, 4].to(GPU)) + \
                     criterion(c6, data[1][:, 5].to(GPU))
                 break
-#             val_loss /= 5
         
         predict_nums = cal_num(c1, c2, c3, c4, c5, c6)
         label_nums = cal_num(data[1][:, 0], data[1][:, 1], data[1][:, 2], data[1][:, 3], data[1][:, 4], data[1][:, 5], label=True)
