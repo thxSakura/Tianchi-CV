@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from const import (DATA_FOLDER, DATA_NAME, DATA_PATH, LABEL_NAME,
                    OUTPUT_FOLDER, SUBMIT_NAME)
-from data_holder import TESTDataset, TRAINDataset
+from data_loader import TESTDataset, TRAINDataset
 
 THREAD = 8
 
